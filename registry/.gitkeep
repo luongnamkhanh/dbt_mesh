@@ -1,0 +1,2 @@
+# Local S3 simulation for manifest registry
+# Structure: registry/{project}/{env}/latest/manifest.json

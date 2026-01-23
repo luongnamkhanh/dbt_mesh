@@ -1,0 +1,21 @@
+# dbt-loom configuration for cross-project references
+#
+# This configuration tells dbt-loom where to find upstream manifests
+# for resolving cross-project refs like {{ ref('dbt_up', 'public_orders') }}
+
+manifests:
+  # Local filesystem manifest (for development/testing)
+  - name: dbt_up
+    type: file
+    config:
+      path: ../registry/dbt_up/prod/latest/manifest.json
+
+# S3 configuration (uncomment for production use):
+# manifests:
+#   - name: dbt_up
+#     type: s3
+#     config:
+#       bucket_name: your-dbt-mesh-bucket
+#       object_name: registry/dbt_up/prod/latest/manifest.json
+#       # Optional: AWS profile
+#       # profile: your-aws-profile

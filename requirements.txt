@@ -1,0 +1,22 @@
+# dbt Mesh POC Dependencies
+
+# Core dbt (>= 1.5.0 required for access property)
+dbt-core>=1.5.0
+
+# Database adapter (choose one)
+dbt-duckdb>=1.5.0  # Recommended for local testing
+
+# Alternative adapters (uncomment as needed):
+# dbt-postgres>=1.5.0
+# dbt-snowflake>=1.5.0
+# dbt-bigquery>=1.5.0
+
+# dbt-loom plugin for cross-project refs
+dbt-loom>=1.0.0
+
+# S3 support (optional, for production registry)
+boto3>=1.26.0
+
+# Development utilities
+# pytest>=7.0.0
+# black>=23.0.0

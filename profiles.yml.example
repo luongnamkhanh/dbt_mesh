@@ -1,0 +1,67 @@
+# Example dbt profiles for the mesh POC
+# Copy this to ~/.dbt/profiles.yml and adjust as needed
+#
+# For quick local testing, you can use DuckDB (no database setup required):
+#   pip install dbt-duckdb
+
+# DuckDB profiles (recommended for POC testing)
+dbt_up:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../dbt_mesh.duckdb
+
+dbt_down_loom:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../dbt_mesh.duckdb
+
+dbt_down:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../dbt_mesh.duckdb
+
+# PostgreSQL profiles (alternative)
+# dbt_up:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: postgres
+#       host: localhost
+#       port: 5432
+#       user: dbt_user
+#       password: "{{ env_var('DBT_PASSWORD') }}"
+#       dbname: dbt_mesh
+#       schema: dbt_up
+#       threads: 4
+#
+# dbt_down_loom:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: postgres
+#       host: localhost
+#       port: 5432
+#       user: dbt_user
+#       password: "{{ env_var('DBT_PASSWORD') }}"
+#       dbname: dbt_mesh
+#       schema: dbt_down_loom
+#       threads: 4
+#
+# dbt_down:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: postgres
+#       host: localhost
+#       port: 5432
+#       user: dbt_user
+#       password: "{{ env_var('DBT_PASSWORD') }}"
+#       dbname: dbt_mesh
+#       schema: dbt_down
+#       threads: 4
