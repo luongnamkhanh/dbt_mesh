@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: ap-southeast-1
-  DBT_MESH_BUCKET: dbt-mesh-registry-khanh  # Replace with your S3 bucket name
+  DBT_MESH_BUCKET: dbt-mesh-khanh-1769163916  # Replace with your S3 bucket name
 
 jobs:
   build:
