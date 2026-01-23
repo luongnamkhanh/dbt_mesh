@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  DBT_PROFILES_DIR: ${{ github.workspace }}
   AWS_REGION: ap-southeast-1
   DBT_MESH_BUCKET: dbt-mesh-registry-khanh  # Replace with your S3 bucket name
 
