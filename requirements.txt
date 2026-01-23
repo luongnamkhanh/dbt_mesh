@@ -12,7 +12,7 @@ dbt-duckdb>=1.5.0  # Recommended for local testing
 # dbt-bigquery>=1.5.0
 
 # dbt-loom plugin for cross-project refs
-dbt-loom>=1.0.0
+dbt-loom>=0.9.0
 
 # S3 support (optional, for production registry)
 boto3>=1.26.0
