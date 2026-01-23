@@ -1,0 +1,37 @@
+name: Main - Documentation and Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate documentation
+        run: |
+          echo "Checking required files..."
+          test -f README.md || echo "⚠ README.md missing"
+          test -f CLAUDE.md && echo "✓ CLAUDE.md found"
+          test -f requirements.txt && echo "✓ requirements.txt found"
+          test -f validate_lineage.py && echo "✓ validate_lineage.py found"
+
+      - name: Validate project structure
+        run: |
+          echo "Checking project directories..."
+          for dir in dbt_up dbt_down_loom dbt_down; do
+            if [ -d "$dir" ]; then
+              echo "✓ $dir exists"
+              test -f "$dir/dbt_project.yml" && echo "  ✓ dbt_project.yml found"
+            else
+              echo "✗ $dir missing"
+            fi
+          done

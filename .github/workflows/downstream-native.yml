@@ -1,0 +1,68 @@
+name: Downstream Native - Build and Test
+
+on:
+  push:
+    branches:
+      - downstream/dbt_down
+  workflow_dispatch:
+
+env:
+  DBT_PROFILES_DIR: ${{ github.workspace }}
+  AWS_REGION: ap-southeast-1
+  DBT_MESH_BUCKET: your-dbt-mesh-bucket  # Replace with your S3 bucket name
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure dbt profiles
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          dbt_down:
+            target: prod
+            outputs:
+              prod:
+                type: duckdb
+                path: ./dbt_mesh.duckdb
+          EOF
+
+      - name: Sync upstream manifest
+        run: |
+          python3 scripts/sync_mesh.py \
+            --bucket ${{ env.DBT_MESH_BUCKET }} \
+            --env prod \
+            --upstream dbt_up
+        working-directory: ./dbt_down
+
+      - name: Build dbt models
+        run: |
+          dbt build
+        working-directory: ./dbt_down
+
+      - name: Validate lineage
+        run: |
+          python3 ../validate_lineage.py --manifest target/manifest.json --upstream dbt_up
+        working-directory: ./dbt_down

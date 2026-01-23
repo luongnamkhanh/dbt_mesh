@@ -1,0 +1,76 @@
+name: Upstream - Build and Publish
+
+on:
+  push:
+    branches:
+      - upstream/dbt_up
+  workflow_dispatch:
+
+env:
+  DBT_PROFILES_DIR: ${{ github.workspace }}
+  AWS_REGION: ap-southeast-1
+  DBT_MESH_BUCKET: your-dbt-mesh-bucket  # Replace with your S3 bucket name
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Configure dbt profiles
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          dbt_up:
+            target: prod
+            outputs:
+              prod:
+                type: duckdb
+                path: ./dbt_mesh.duckdb
+          EOF
+
+      - name: Build dbt models
+        run: |
+          dbt build
+        working-directory: ./dbt_up
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish manifest to S3
+        run: |
+          python3 publish_manifest.py \
+            --bucket ${{ env.DBT_MESH_BUCKET }} \
+            --env prod \
+            --project dbt_up
+        working-directory: ./dbt_up
+
+      - name: Validate public models
+        run: |
+          echo "✓ Manifest published successfully"
+          python3 -c "
+          import json
+          with open('target/manifest.json') as f:
+              manifest = json.load(f)
+          public = [k for k,v in manifest['nodes'].items()
+                    if v.get('access') == 'public']
+          print(f'Published {len(public)} public models: {public}')
+          "
+        working-directory: ./dbt_up
