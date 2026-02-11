@@ -1,10 +1,9 @@
-# Native Sources Approach - Compile and Validate Lineage
+# Native Sources Approach - Build with Snowflake
 #
 # This workflow demonstrates the native dbt approach using auto-generated sources.
-# NOTE: Only compiles (doesn't build) because isolated CI/CD databases don't share tables.
-# For full build capability, use dbt-loom plugin approach or shared database setup.
+# With Snowflake, full builds work because databases persist between runs.
 
-name: Downstream Native - Compile and Validate
+name: Downstream Native - Build and Validate
 
 on:
   push:
@@ -50,8 +49,16 @@ jobs:
             target: prod
             outputs:
               prod:
-                type: duckdb
-                path: ./dbt_mesh.duckdb
+                type: snowflake
+                account: \${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: \${{ secrets.SNOWFLAKE_USER }}
+                password: \${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: DBT_DOWN_ROLE
+                warehouse: DBT_DOWN_WH
+                database: DBT_DOWN_PROD
+                schema: STAGING
+                threads: 4
+                client_session_keep_alive: false
           EOF
 
       - name: Sync upstream manifest
@@ -62,9 +69,9 @@ jobs:
             --upstream dbt_up
         working-directory: ./dbt_down
 
-      - name: Compile dbt models (Native approach - compile only)
+      - name: Build dbt models with defer
         run: |
-          dbt compile
+          dbt build --defer --state state/dbt_up
         working-directory: ./dbt_down
 
       - name: Validate lineage
@@ -72,9 +79,8 @@ jobs:
           python3 ../validate_lineage.py --manifest target/manifest.json --upstream dbt_up
         working-directory: ./dbt_down
 
-      - name: Note about native approach
+      - name: Success message
         run: |
-          echo "ℹ️  Native sources approach compiled successfully!"
-          echo "   This demonstrates lineage tracking via auto-generated sources."
-          echo "   Full 'dbt build' requires shared database access between projects."
-          echo "   For isolated deployments, use dbt-loom plugin approach instead."
+          echo "✅ Native sources approach built successfully with Snowflake!"
+          echo "   Full lineage preserved via auto-generated sources."
+          echo "   Downstream models read from persistent upstream tables in DBT_UP_PROD."

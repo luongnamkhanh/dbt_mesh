@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw source data loaded into Snowflake"
+    database: DBT_UP_PROD
+    schema: RAW
+    tables:
+      - name: raw_orders
+        description: "Raw orders data from source systems"
+        columns:
+          - name: order_id
+            description: "Unique order identifier"
+          - name: customer_id
+            description: "Customer identifier"
+          - name: order_status
+            description: "Order status (COMPLETED, PENDING, SHIPPED, CANCELLED)"
+          - name: order_amount
+            description: "Order total amount"
+          - name: order_date
+            description: "Order date"
+          - name: created_at
+            description: "Order creation timestamp"
+
+      - name: raw_customers
+        description: "Raw customer data from source systems"
+        columns:
+          - name: customer_id
+            description: "Unique customer identifier"
+          - name: customer_name
+            description: "Customer full name"
+          - name: email
+            description: "Customer email address"
+          - name: signup_date
+            description: "Customer signup date"
+          - name: customer_segment
+            description: "Customer segment (RETAIL, WHOLESALE, ENTERPRISE)"

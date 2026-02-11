@@ -4,11 +4,11 @@
 dbt-core>=1.5.0
 
 # Database adapter (choose one)
-dbt-duckdb>=1.5.0  # Recommended for local testing
+# dbt-duckdb>=1.5.0  # In-memory testing only, no persistence
 
-# Alternative adapters (uncomment as needed):
+# Production adapters:
+dbt-snowflake>=1.5.0  # Snowflake - persistent cloud database (primary)
 # dbt-postgres>=1.5.0
-# dbt-snowflake>=1.5.0
 # dbt-bigquery>=1.5.0
 
 # dbt-loom plugin for cross-project refs

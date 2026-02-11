@@ -43,37 +43,59 @@ This repository uses separate branches for each project to simulate real-world t
 
 ### Prerequisites
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+**Database Setup (Snowflake)**
 
-# Configure dbt profiles
-cp profiles.yml.example ~/.dbt/profiles.yml
+This project uses Snowflake for persistent database storage. See the complete setup guide:
+
+📖 **[Snowflake Setup Guide](dbt_down/snowflake_setup/INDEX.md)**
+
+Quick setup (5-10 minutes):
+```bash
+# 1. Run Snowflake SQL scripts (in Snowsight or SnowSQL)
+cd dbt_down/snowflake_setup
+# Run: 01_create_databases_and_warehouses.sql
+# Run: 02_create_roles_and_users.sql
+# Run: 03_create_sample_data.sql
+
+# 2. Configure dbt profiles
+export DBT_SNOWFLAKE_PASSWORD='your_password'
+cp dbt_down/snowflake_setup/profiles.yml ~/.dbt/profiles.yml
+
+# 3. Test connection
+cd dbt_up && dbt debug
+```
+
+**Install Python dependencies**
+```bash
+pip install -r requirements.txt
 ```
 
 ### Local Testing (Monorepo Mode)
 
+**With Snowflake (Recommended - Full Features)**
 ```bash
 # 1. Build and publish upstream
 cd dbt_up
-dbt build
+dbt build --target prod
 python3 publish_manifest.py --local
 cd ..
 
-# 2. Build downstream (loom)
+# 2. Build downstream (loom) - reads from DBT_UP_PROD
 cd dbt_down_loom
-dbt build
+dbt build --target prod
 cd ..
 
-# 3. Build downstream (native)
+# 3. Build downstream (native) - uses --defer for efficiency
 cd dbt_down
 python3 scripts/sync_mesh.py --local
-dbt build
+dbt build --target prod --defer --state ../dbt_up/target
 cd ..
 
 # 4. Validate lineage
 python3 validate_lineage.py --all
 ```
+
+> **Why Snowflake?** Persistent databases enable true `--defer` functionality where downstream projects skip rebuilding upstream models and read directly from `DBT_UP_PROD` tables.
 
 ## CI/CD Setup
 
@@ -87,7 +109,10 @@ Add these secrets:
 
 | Secret Name | Value |
 |-------------|-------|
-| `AWS_ACCESS_KEY_ID` | Your AWS access key |
+| `SNOWFLAKE_ACCOUNT` | Your Snowflake account identifier (e.g., QMVBJWG-PM06063) |
+| `SNOWFLAKE_USER` | Snowflake username or CI service account |
+| `SNOWFLAKE_PASSWORD` | Snowflake password |
+| `AWS_ACCESS_KEY_ID` | Your AWS access key (for S3 manifest registry) |
 | `AWS_SECRET_ACCESS_KEY` | Your AWS secret key |
 | `AWS_SESSION_TOKEN` | Your AWS session token (if using temporary credentials) |
 

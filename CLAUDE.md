@@ -21,6 +21,14 @@ This is a **dbt Mesh Cross-Project Lineage POC** demonstrating that dbt mesh cap
      │ dbt_up  │        │dbt_down_loom │     │ dbt_down  │
      │ (source)│        │  (plugin)    │     │ (native)  │
      └─────────┘        └──────────────┘     └───────────┘
+          │                    │                    │
+          └────────────────────┴────────────────────┘
+                               │
+                ┌──────────────┴───────────────┐
+                │      Snowflake Cloud         │
+                │  DBT_UP_PROD, DBT_DOWN_PROD  │
+                │  DBT_DOWN_LOOM_PROD          │
+                └──────────────────────────────┘
 ```
 
 **Three dbt projects:**
@@ -32,20 +40,26 @@ This is a **dbt Mesh Cross-Project Lineage POC** demonstrating that dbt mesh cap
 
 ### Setup
 ```bash
+# 1. Run Snowflake setup (see dbt_down/snowflake_setup/INDEX.md)
+cd dbt_down/snowflake_setup
+# Run SQL scripts: 01, 02, 03
+
+# 2. Install dependencies and configure profiles
 pip install -r requirements.txt
-cp profiles.yml.example ~/.dbt/profiles.yml
+export DBT_SNOWFLAKE_PASSWORD='your_password'
+cp dbt_down/snowflake_setup/profiles.yml ~/.dbt/profiles.yml
 ```
 
-### Full Workflow
+### Full Workflow (Snowflake)
 ```bash
-# 1. Build and publish upstream
-cd dbt_up && dbt build && python3 publish_manifest.py --local
+# 1. Build and publish upstream to Snowflake
+cd dbt_up && dbt build --target prod && python3 publish_manifest.py --local
 
-# 2. Build dbt-loom downstream
-cd ../dbt_down_loom && dbt build
+# 2. Build dbt-loom downstream (reads from DBT_UP_PROD)
+cd ../dbt_down_loom && dbt build --target prod
 
-# 3. Sync and build native downstream
-cd ../dbt_down && python3 scripts/sync_mesh.py --local && dbt build
+# 3. Sync and build native downstream with defer
+cd ../dbt_down && python3 scripts/sync_mesh.py --local && dbt build --target prod --defer --state ../dbt_up/target
 
 # 4. Validate lineage (exit 0 = success)
 cd .. && python3 validate_lineage.py --all

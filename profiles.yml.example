@@ -1,30 +1,73 @@
 # Example dbt profiles for the mesh POC
 # Copy this to ~/.dbt/profiles.yml and adjust as needed
 #
-# For quick local testing, you can use DuckDB (no database setup required):
-#   pip install dbt-duckdb
+# RECOMMENDED: Use Snowflake for database persistence
+# See dbt_down/snowflake_setup/profiles.yml for full Snowflake configuration
 
-# DuckDB profiles (recommended for POC testing)
+# Snowflake profiles (recommended - persistent database)
 dbt_up:
-  target: dev
+  target: prod
   outputs:
-    dev:
-      type: duckdb
-      path: ../dbt_mesh.duckdb
+    prod:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_UP_ROLE
+      warehouse: DBT_UP_WH
+      database: DBT_UP_PROD
+      schema: STAGING
+      threads: 4
 
 dbt_down_loom:
-  target: dev
+  target: prod
   outputs:
-    dev:
-      type: duckdb
-      path: ../dbt_mesh.duckdb
+    prod:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_DOWN_LOOM_ROLE
+      warehouse: DBT_DOWN_WH
+      database: DBT_DOWN_LOOM_PROD
+      schema: STAGING
+      threads: 4
 
 dbt_down:
-  target: dev
+  target: prod
   outputs:
-    dev:
-      type: duckdb
-      path: ../dbt_mesh.duckdb
+    prod:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_DOWN_ROLE
+      warehouse: DBT_DOWN_WH
+      database: DBT_DOWN_PROD
+      schema: STAGING
+      threads: 4
+
+# DuckDB profiles (legacy - in-memory only, no persistence)
+# dbt_up:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: duckdb
+#       path: ../dbt_mesh.duckdb
+#
+# dbt_down_loom:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: duckdb
+#       path: ../dbt_mesh.duckdb
+#
+# dbt_down:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: duckdb
+#       path: ../dbt_mesh.duckdb
 
 # PostgreSQL profiles (alternative)
 # dbt_up:

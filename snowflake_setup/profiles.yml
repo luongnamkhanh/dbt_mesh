@@ -1,0 +1,121 @@
+# ============================================================================
+# dbt Profiles for Snowflake (dbt Mesh Setup)
+# ============================================================================
+# Copy this file to ~/.dbt/profiles.yml
+# Replace placeholders with your actual credentials
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Upstream Project Profile (dbt_up)
+# ----------------------------------------------------------------------------
+dbt_up:
+  target: prod
+  outputs:
+    prod:
+      type: snowflake
+      account: QMVBJWG-PM06063  # Your account identifier
+      user: KHANHLN            # Replace with your username or CI service account
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"  # Use env var for security
+      role: DBT_UP_ROLE
+      warehouse: DBT_UP_WH
+      database: DBT_UP_PROD
+      schema: STAGING          # Default schema (can be overridden in dbt_project.yml)
+      threads: 4
+      client_session_keep_alive: false
+
+    dev:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_UP_ROLE
+      warehouse: DBT_UP_WH
+      database: DBT_UP_DEV     # Separate dev database (create if needed)
+      schema: "{{ env_var('DBT_SCHEMA', 'KHANHLN_DEV') }}"  # Personal dev schema
+      threads: 4
+
+# ----------------------------------------------------------------------------
+# Downstream Project Profile - Native Mesh (dbt_down)
+# ----------------------------------------------------------------------------
+dbt_down:
+  target: prod
+  outputs:
+    prod:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_DOWN_ROLE
+      warehouse: DBT_DOWN_WH
+      database: DBT_DOWN_PROD
+      schema: STAGING
+      threads: 4
+      client_session_keep_alive: false
+
+    dev:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_DOWN_ROLE
+      warehouse: DBT_DOWN_WH
+      database: DBT_DOWN_DEV
+      schema: "{{ env_var('DBT_SCHEMA', 'KHANHLN_DEV') }}"
+      threads: 4
+
+# ----------------------------------------------------------------------------
+# Downstream Project Profile - dbt-loom (dbt_down_loom)
+# ----------------------------------------------------------------------------
+dbt_down_loom:
+  target: prod
+  outputs:
+    prod:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_DOWN_LOOM_ROLE
+      warehouse: DBT_DOWN_WH
+      database: DBT_DOWN_LOOM_PROD
+      schema: STAGING
+      threads: 4
+      client_session_keep_alive: false
+
+    dev:
+      type: snowflake
+      account: QMVBJWG-PM06063
+      user: KHANHLN
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: DBT_DOWN_LOOM_ROLE
+      warehouse: DBT_DOWN_WH
+      database: DBT_DOWN_LOOM_DEV
+      schema: "{{ env_var('DBT_SCHEMA', 'KHANHLN_DEV') }}"
+      threads: 4
+
+# ============================================================================
+# Configuration Notes
+# ============================================================================
+#
+# 1. Security Best Practice:
+#    Store your password in an environment variable:
+#    export DBT_SNOWFLAKE_PASSWORD='your_password_here'
+#
+#    For CI/CD, add this as a GitHub secret
+#
+# 2. Alternative: Use Key-Pair Authentication (More Secure)
+#    Replace password auth with:
+#      authenticator: snowflake_jwt
+#      private_key_path: /path/to/private_key.p8
+#      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE') }}"
+#
+# 3. Schema Naming:
+#    - prod: Uses fixed schemas (STAGING, MARTS)
+#    - dev: Uses personal schemas (KHANHLN_DEV or from DBT_SCHEMA env var)
+#
+# 4. Testing Connection:
+#    dbt debug --project-dir ./dbt_up
+#    dbt debug --project-dir ./dbt_down
+#
+# 5. Running dbt:
+#    cd dbt_up && dbt build --target prod
+#    cd dbt_down && dbt build --target prod --defer --state ../dbt_up/target

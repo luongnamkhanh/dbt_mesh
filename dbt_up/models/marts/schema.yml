@@ -18,7 +18,7 @@ models:
         data_type: varchar
       - name: amount
         description: "Order total amount"
-        data_type: "decimal(18,3)"
+        data_type: "decimal(10,2)"
       - name: created_at
         description: "Order creation timestamp"
-        data_type: "timestamp with time zone"
+        data_type: "timestamp_ntz"

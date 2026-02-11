@@ -36,8 +36,16 @@ jobs:
             target: prod
             outputs:
               prod:
-                type: duckdb
-                path: ./dbt_mesh.duckdb
+                type: snowflake
+                account: \${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: \${{ secrets.SNOWFLAKE_USER }}
+                password: \${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: DBT_UP_ROLE
+                warehouse: DBT_UP_WH
+                database: DBT_UP_PROD
+                schema: STAGING
+                threads: 4
+                client_session_keep_alive: false
           EOF
 
       - name: Build dbt models
